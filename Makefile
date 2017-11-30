@@ -3,7 +3,7 @@ NAME_CLIENT = client
 
 CC = clang
 CFLAGS = -Wall -Wextra -Werror
-LDFLAGS = -L libft -lft
+LDFLAGS = -lncurses -L libft -lft
 
 LIBPATH = libft
 LIB = $(LIBPATH)/libft.a
@@ -12,10 +12,10 @@ INCLUDES = includes/
 
 VPATH = srcs/client:srcs/server
 SRCS_SERVER = \
-	   main.c
+	   s_main.c
 
 SRCS_CLIENT = \
-	   main.c
+	   c_main.c
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))
