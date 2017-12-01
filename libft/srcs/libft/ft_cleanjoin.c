@@ -21,7 +21,5 @@ char	*ft_cjoin(char *s1, char *s2)
 	stock = ft_strjoin(s1, s2);
 	if (s1)
 		ft_strdel(&s1);
-	if (s2)
-		ft_strdel(&s2);
 	return (stock);
 }

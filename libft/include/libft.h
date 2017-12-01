@@ -16,6 +16,8 @@
 # include <string.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include <ncurses.h>
+# include <curses.h>
 
 typedef struct		s_list
 {

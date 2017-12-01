@@ -5,3 +5,4 @@ libft/objs
 libft/libft.a
 !server/
 !client/
+.DS_Store

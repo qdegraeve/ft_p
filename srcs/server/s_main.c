@@ -7,6 +7,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+char	**ft_ls(char **args);
+
+
 void	usage(char *str) {
 	ft_printf("Usage: %s <port>\n", str);
 	exit(EXIT_FAILURE);
@@ -52,15 +55,28 @@ int		handle_connections(int port) {
 		}
 		else {
 			
-			r = recv(cs, &buf, 1023, 0);
-			while (r > 0) {
+			while ((r = recv(cs, &buf, 1023, 0)) > 0) {
 				buf[r] = '\0';
-				ft_printf("received: %d bytes\n", r);
-				ft_putstr(buf);
-				ft_printf("cmp == %d\n", ft_strcmp(buf, "exit\n"));
-				if (ft_strcmp(buf, "exit\n") == 0)
-					break;
-				r = recv(cs, &buf, 1023, 0);
+				ft_printf("cmp == %d\n", ft_strcmp(buf, "exit"));
+				if (ft_strcmp(buf, "exit") == 0)
+				{
+					close(sock);
+					return (0);
+				}
+				if (ft_strncmp(buf, "ls", 2) == 0)
+				{
+					char	**output;
+
+					if (!(output = ft_ls(ft_strsplit(buf, ' '))))
+						continue ;
+					while (output && *output)
+					{
+						write(cs, *output, ft_strlen(*output));
+						write(cs, "\n", 1);
+						output++;
+					}
+					write(cs, "EOF", 3);
+				}
 			}
 			close(cs);
 		}
