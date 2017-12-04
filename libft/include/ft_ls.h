@@ -110,13 +110,13 @@ char				*define_type(mode_t st_mode);
 void				sort_select(t_list **dir, void *content, size_t cont_size);
 void				sort_list(t_list **dir, int o,
 		int (*sort)(t_dircont *, void *, int));
-int					sort_ascii(t_dircont *c1, void *c2, int o);
+int					sort_ascii(t_dircont *c1, void *c2);
 
 /*
 ** Mr Proper
 */
-void				ft_lst_sortinsert(t_list **beg_lst, t_list *new, int o,
-		int (*sort)(t_dircont *, void *, int));
+void				ft_lst_sortinsert(t_list **beg_lst, t_list *new,
+		int (*sort)(t_dircont *, void *));
 void				ft_lst_insert(t_list **lst, t_list *in);
 void				lst_delone(t_list **lst, void (*del)(void *));
 void				del_dircont(void *to_del);
