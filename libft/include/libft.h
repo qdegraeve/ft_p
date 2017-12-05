@@ -16,8 +16,16 @@
 # include <string.h>
 # include <stdlib.h>
 # include <unistd.h>
-# include <ncurses.h>
-# include <curses.h>
+# include <stdarg.h>
+
+# define NRM  "\x1B[0m"
+# define RED  "\x1B[31m"
+# define GRN  "\x1B[32m"
+# define YEL  "\x1B[33m"
+# define BLU  "\x1B[34m"
+# define MAG  "\x1B[35m"
+# define CYN  "\x1B[36m"
+# define WHT  "\x1B[37m"
 
 typedef struct		s_list
 {
@@ -97,5 +105,9 @@ void				ft_lstiter(t_list *lst, void (*f)(t_list *elem));
 t_list				*ft_lstmap(t_list *lst, t_list *(*f)(t_list *elem));
 void				ft_lstadd_back(t_list **beg_lst, void const *content,
 		size_t cont_size);
+
+size_t				ft_tablen(char **tabl);
+void				ft_tabdel(char ***as);
+char				*ft_concat(int n, ...);
 
 #endif

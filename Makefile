@@ -3,7 +3,7 @@ NAME_CLIENT = client
 
 CC = clang
 CFLAGS = -Wall -Wextra -Werror
-LDFLAGS = -lncurses -L libft -lft
+LDFLAGS = -L libft -lft
 
 LIBPATH = libft
 LIB = $(LIBPATH)/libft.a
@@ -15,7 +15,7 @@ SRCS_SERVER = \
 	   s_main.c
 
 SRCS_CLIENT = \
-	   c_main.c
+	   c_main.c \
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))
@@ -23,17 +23,17 @@ OBJS_CLIENT = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_CLIENT))
 
 default: all
 
-all: client server
+all: $(OBJDIR) client server
 
 $(LIB):
 	@make -C $(LIBPATH)
 
 client: $(LIB) $(OBJS_CLIENT)
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME_CLIENT) $(OBJS_CLIENT)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME_CLIENT) $(OBJS_CLIENT) -I $(INCLUDES)
 	@echo "\n # ft_p client : Job done $(shell pwd)/$(NAME_CLIENT)"
 
 server: $(LIB) $(OBJS_SERVER)
-	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME_SERVER) $(OBJS_SERVER)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME_SERVER) $(OBJS_SERVER) -I $(INCLUDES)
 	@echo "\n # ft_p server : Job done $(shell pwd)/$(NAME_SERVER)"
 
 $(OBJDIR)%.o: %.c $(OBJDIR)

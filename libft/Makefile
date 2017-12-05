@@ -1,4 +1,4 @@
-# **************************************************************************** #
+ # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
@@ -102,14 +102,9 @@ SRCS =  ft_strlcat.c \
 	type_o.c \
 	type_p.c \
 	ft_wchar.c \
-	define_type.c \
-	ft_ls.c \
-	list_tools.c \
-	read_n_sort.c \
-	tools.c \
-	print.c \
-	options.c \
-	mr_proper.c \
+	ft_tablen.c \
+	ft_tabdel.c \
+	ft_concat.c
 
 OBJDIR = objs/
 OBJS = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS))

@@ -1,16 +1,10 @@
-#include <stdio.h>
-#include "../../libft/include/ft_printf.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <ncurses.h>
-#include <curses.h>
+#include "ftp.h"
 
-char	**ft_ls(char **args);
-
+static const char	*g_commands[CMDS_NB] = {
+	"cd" ,
+	"pwd" ,
+	"ls" 
+};
 
 void	usage(char *str) {
 	ft_printf("Usage: %s <port>\n", str);
@@ -36,110 +30,82 @@ int		create_client(char *addr, int port) {
 	return (sock);
 }
 
-void	output_ls(WINDOW *w)
+int		exec_cmds(int sock, char *cmd)
 {
-	// TODO: take output as argument and delete it each time
-	char	*ls[] = {"-l", NULL};
-	char	**output;
-	int		i = 0;
+	int		i;
+	int 	j;
+	char	buf[42000];
 
-	if (!(output = ft_ls(ls)))
-		return;
-	while (output && *output)
+	i = 0;
+	j = -1;
+	while (cmd[i] && cmd[i] != ' ')
+		i++;
+	while (i && ++j < CMDS_NB)
 	{
-		mvwaddstr(w, 3 + i++, 1, *output);
-		output++;
-	}
-}
-
-int 	rec_infos(int sock, WINDOW *win, int *i)
-{
-	char	buf[1024];
-	int		ret;
-	int		r;
-	int		j;
-
-	j = *i;			
-	ret = 0;
-	r = recv(sock, &buf, 1023, 0);
-	buf[r] = '\0';
-	char **test = ft_strsplit(buf, '\n');
-	while(test && *test)
-	{
-		mvwaddstr(win, 3 + j++, 1, *test);
-		// printf("buf == [%s] -- strcmp == %d", buf, ft_strcmp(*test, "EOF"));
-		if ((ft_strcmp(*test, "EOF")) == 0)
+		if (ft_strncmp(g_commands[j], cmd, i) == 0)
+		{
+			send(sock, cmd, ft_strlen(cmd), 0);
+			i = recv(sock, buf, 41999, 0);
+			buf[i] = '\0';
+			write(1, buf, i);
+			write(1, "\n", 1);
 			return (1);
-		test++;
+		}
 	}
-	*i = j;
-	return (ret);
+	return (0);
 }
 
-int		user_interface(int sock)
+char	*get_pwd_prompt(char *path)
 {
-	WINDOW	*mainwin;
-	WINDOW	*menuwin;
-	WINDOW	*local_win;
-	WINDOW	*server_win;
-
-	int		yMax;
-	int		xMax;
-	char	buf[1024];
 	int		i;
 
-	if ((mainwin = initscr()) == NULL)
-		return (1);
-	getmaxyx(mainwin, yMax, xMax);
-	printf("yMax == %d\nxMax == %d\n", yMax, xMax);
-	cbreak();
+	if (!path)
+		path = ft_strdup("Middle of nowhere");
+	i = ft_strlen(path);
+	while (i >= 0 && path[i] != '/')
+		i--;
+	return (path + i + 1);
+}
 
-	local_win = subwin(mainwin, yMax - 8 - 10, (xMax - 6) / 2, 14, 2);
-	server_win = subwin(mainwin, yMax - 8 - 10, (xMax - 6) / 2, 14, (xMax - 6) / 2 + 4);
-	menuwin = subwin(mainwin, 8, xMax - 12, 4, 6);
-	scrollok(menuwin, TRUE);
-	idlok(menuwin, TRUE);
-	box(local_win, 0, 0);
-	box(server_win, 0, 0);
-	box(menuwin, 0, 0);
-	refresh();
-	wrefresh(menuwin);
-	wrefresh(local_win);
-	wrefresh(server_win);
-	output_ls(local_win);
+void	prompt()
+{
+	char	*path;
 
-	keypad(menuwin, true);
+	path = NULL;
+	path = getcwd(path, 255);
+	// if (g_returned_error > 0)
+	ft_printf("%s %s: > ", get_pwd_prompt(path), GRN);
+	ft_printf("%s", NRM);
+	// else
+		// ft_printf("%s \033[1;32m: > ", get_pwd_prompt(path));
+	if (path)
+		ft_strdel(&path);
+}
+
+void	user_interface(int sock)
+{
+	char	*line;
+	char	path[256];
+
+	line = NULL;
 	while (1)
 	{
-		mvwaddstr(menuwin, 1, 1, "ft_p: ");
-		wclrtoeol(menuwin);
-		box(menuwin, 0, 0);
-		wgetnstr(menuwin, buf, xMax - 15 - 6);
-		werase(local_win);
-		output_ls(local_win);
-		mvwaddstr(local_win, 1, 1, buf);
-		if (ft_strcmp(buf, "exit") == 0)
+		prompt();
+		if (get_next_line(0, &line) > 0)
 		{
-			send(sock, "exit", 4, 0);
-			break;
+			if (ft_strcmp(line, "quit") == 0)
+			{
+				ft_strdel(&line);
+				break;
+			}
+			else if (server_cmds(sock, line) == 0)
+			{
+				realpath(line, path);
+				ft_printf("real path == %s\n", path);
+			}
+			ft_strdel(&line);
 		}
-		if (ft_strcmp(buf, "clear") == 0)
-			werase(menuwin);
-		if (ft_strncmp(buf, "ls", 2) == 0)
-		{
-			i = 0;
-			send(sock, buf, ft_strlen(buf), 0);
-			while (!rec_infos(sock, server_win, &i)) ;
-		}
-		wscrl(menuwin, -1);
-		box(local_win, 0, 0);
-		wrefresh(menuwin);
-		wrefresh(server_win);
-		wrefresh(local_win);
-
 	}
-	endwin();
-	return(0);
 }
 
 int		main(int ac, char **av) {
