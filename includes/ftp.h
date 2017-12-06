@@ -11,21 +11,36 @@
 # include <arpa/inet.h>
 # include <ncurses.h>
 # include <curses.h>
+#include <sys/types.h> 
+#include <sys/stat.h> 
 
-# define CMDS_NB	3
+# define BUFSIZE	1024
+# define DATASIZE	sizeof(t_data)
+# define CMDS_NB	5
 
-typedef struct			s_commands
+typedef struct			s_server_cmds
 {
 	char				*id;
-	int					(*f)(char **cmd);
-}						t_commands;
+	int					(*f)(char **cmd, int csock);
+}						t_server_cmds;
 
+typedef struct 			s_client_cmds
+{
+	char				*id;
+	int					(*f)(char *cmd, int csock);
+}						t_client_cmds;
+
+typedef struct			s_data
+{
+	unsigned short		return_code;
+	unsigned long		data_size; // if data_size == 0 --> end of command
+	unsigned long		total_parts;
+	unsigned long		part_nb;
+	unsigned long		part_size;
+	char				data[BUFSIZE];
+}						t_data;
 
 char	**ft_ls(char **args);
 void	prompt();
-
-int		exec_ls(char **cmd);
-int		exec_cd(char **cmd);
-int		exec_pwd(char **cmd);
 
 #endif

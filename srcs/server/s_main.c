@@ -1,9 +1,17 @@
 #include "ftp.h"
 
-static const t_commands g_commands[CMDS_NB] = {
+int		exec_ls(char **cmd, int socket);
+int		exec_cd(char **cmd, int socket);
+int		exec_pwd(char **cmd, int socket);
+int		exec_get(char **cmd, int socket);
+int		exec_put(char **cmd, int socket);
+
+static const t_server_cmds g_commands[CMDS_NB] = {
 	{ "cd", &exec_cd },
 	{ "pwd", &exec_pwd },
-	{ "ls", &exec_ls }
+	{ "ls", &exec_ls },
+	{ "put", &exec_put },
+	{ "get", &exec_get }
 };
 
 void	usage(char *str) {
@@ -28,6 +36,32 @@ int		create_server(int port) {
 	return (sock);
 }
 
+int		send_success(int csock, char *name)
+{
+	t_data			data;
+
+	ft_strcpy(data.data, "CMD: Successfully ");
+	ft_strcat(data.data, "received file ");
+	ft_strcat(data.data, name);
+	data.data_size = htonl(0);
+	data.return_code = htons(0);
+	send(csock, &data, DATASIZE, 0);
+	return (0);
+}
+
+int		send_error(int csock, char *name)
+{
+	t_data			data;
+
+	ft_strcpy(data.data, "CMD: Transmission error ");
+	ft_strcat(data.data, "for file ");
+	ft_strcat(data.data, name);
+	data.data_size = htonl(0);
+	data.return_code = htons(1);
+	send(csock, &data, DATASIZE, 0);
+	return (1);
+}
+
 int		count_char(char *str, char c)
 {
 	int		i;
@@ -44,72 +78,140 @@ int		count_char(char *str, char c)
 	return (i);
 }
 
-int		exec_cmd(int index, char **cmd, int csock)
+int		exec_ls(char **cmd, int csock)
 {
-	pid_t	pid;
-	int		status;
+	pid_t		pid;
+	int			status;
 
 	if ((pid = fork()) == -1)
-		return (-1);
+		return (send_error(csock, "cacaprout"));
 	if (pid > 0)
 	{
 		printf("entered in fork parent for execution\n");
 		wait4(pid, &status, 0, NULL);
+		if (WEXITSTATUS(status) == 0)
+			send_success(csock, "caca");
+		else
+			send_error(csock, "prout");
 		printf("exited parent -- Child exited with status [%d] -- [%d]\n", WEXITSTATUS(status), status);
 	}
 	else
 	{
 		dup2(csock, 1);
 		dup2(csock, 2);
-		g_commands[index].f(cmd);
+		execv("/bin/ls", cmd);
+	}		
+	return (0);
+}
+
+int		exec_pwd(char **cmd, int csock)
+{
+	pid_t		pid;
+	int			status;
+
+	if ((pid = fork()) == -1)
+		return (send_error(csock, "cacaprout"));
+	if (pid > 0)
+	{
+		printf("entered in fork parent for execution\n");
+		wait4(pid, &status, 0, NULL);
+		if (WEXITSTATUS(status) == 0)
+			send_success(csock, "caca");
+		else
+			send_error(csock, "prout");
+		printf("exited parent -- Child exited with status [%d] -- [%d]\n", WEXITSTATUS(status), status);
 	}
-	return (WEXITSTATUS(status));
-
-}
-
-int		exec_ls(char **cmd)
-{
-	execv("/bin/ls", cmd);
-	// char	**output;
-
-	// output = ft_ls(cmd);
-	// while (output && *output)
-	// {
-	// 	send(cs, *output, ft_strlen(*output), 0);
-	// 	send(cs, "\n", 1, 0);
-	// 	output++;
-	// }
-	// send(cs, "EOT", 3, 0);
+	else
+	{
+		dup2(csock, 1);
+		dup2(csock, 2);
+		execv("/bin/pwd", cmd);
+	}
 	return (0);
 }
 
-int		exec_pwd(char **cmd)
-{
-	execv("/bin/pwd", cmd);
-	return (0);
-}
-
-int		exec_cd(char **cmd)
+int		exec_cd(char **cmd, int csock)
 {
 	char	*path;
 	char	*new_path;
+	int		ret;
 
+	ret = 0;
 	path = NULL;
 	new_path = NULL;
 	path = getcwd(path, 255);
-	if (chdir(cmd[1] ? ft_cjoin(cmd[1], "/") : "~") == 0)
+	if (chdir(cmd[1] ? ft_strjoin(cmd[1], "/") : "~") == 0)
 	{
 		new_path = getcwd(new_path, 255);
 		if (count_char(new_path, '/') < count_char(path, '/'))
+		{
 			chdir(path);
-		ft_printf("%s\n", "cd failure");
-		exit(EXIT_FAILURE);
+			ft_printf("%s\n", "cd failure");
+			ret = send_error(csock, "cd failure");
+		}
+		ft_printf("%s\n", "cd success");
 	}
 	ft_strdel(&path);
-	if (new_path)
 	ft_strdel(&new_path);
-	ft_printf("%s\n", "cd success");
-	exit(EXIT_SUCCESS);
+	return (ret ? ret : send_success(csock, "cd success"));
+}
+
+int		exec_get(char **cmd, int csock)
+{
+	t_data		data;
+
+	cmd = NULL;
+	send_success(csock, "rien a dire");
+	return (0);
+	data.data_size = htonl(ft_strlen("je suis beau"));
+	data.total_parts = htonl(1);
+	data.part_nb = htonl(1);
+	ft_strcpy(data.data, "je suis beau");
+	send(csock, &data, DATASIZE, 0);
+	return (0);
+}
+
+int		exec_put(char **cmd, int csock)
+{
+	t_data			data;
+	unsigned long	size;
+	unsigned long	prev_part;
+	int				file_fd;
+
+	size = 0;
+	prev_part = 1;
+	if (!cmd[1])
+		return (send_error(csock, "no file given"));
+	if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_TRUNC, S_IROTH | S_IWUSR)) == -1)
+		return (send_error(csock, "file creation failed"));
+	while (1)
+	{	
+		recv(csock, &data, DATASIZE, 0);
+		data.data_size = ntohl(data.data_size);
+		data.total_parts = ntohl(data.total_parts);
+		data.part_nb = ntohl(data.part_nb);
+		data.part_size = ntohl(data.part_size);
+		ft_printf("size == %lu -- part_size == %lu -- part == %lu/%lu\n%s\n", data.data_size, data.part_size, data.part_nb, data.total_parts, data.data);
+		if (data.part_nb == prev_part++)
+			write(file_fd, data.data, data.part_size);
+		else
+		{
+			unlink(cmd[1]);
+			return (send_error(csock, cmd[1]));
+		}
+		size += data.part_size;
+		if (data.part_nb == data.total_parts)
+		{
+			if (size == data.data_size)
+				send_success(csock, cmd[1]);
+			else {
+				unlink(cmd[1]);
+				return (send_error(csock, cmd[1]));
+			}
+			break ;
+		}
+	}
+	close(file_fd);
 	return (0);
 }
 
@@ -119,7 +221,7 @@ int		handle_connections(int port) {
 	unsigned int		cslen;
 	struct sockaddr_in	csin;
 	int					r;
-	char				buf[1024];
+	char				buf[BUFSIZE];
 	pid_t				pid;
 	char				**cmd;
 	int					i;
@@ -128,9 +230,7 @@ int		handle_connections(int port) {
 	cmd = NULL;
 	sock = create_server(port);
 	while (42) {
-		DEBUG
 		cs = accept(sock, (struct sockaddr *)&csin, &cslen);
-		DEBUG
 		if ((pid = fork()) == -1)
 			return (1);
 		if (pid > 0) {
@@ -149,7 +249,7 @@ int		handle_connections(int port) {
 				while (i < CMDS_NB)
 				{
 					if (ft_strcmp(g_commands[i].id, cmd[0]) == 0)
-						exec_cmd(i, cmd, cs);
+						g_commands[i].f(cmd, cs);
 					i++;
 				}
 				ft_tabdel(&cmd);
