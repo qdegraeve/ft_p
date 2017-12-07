@@ -13,6 +13,22 @@ static const t_client_cmds	g_commands[CMDS_NB] = {
 	{ "put", &exec_put }
 };
 
+
+int		rec_data(t_data *data, int socket)
+{
+	int		r;
+
+	ft_bzero(data, DATASIZE);
+	r = recv(socket, data, DATASIZE, 0);
+	(*data).data_size = ntohl((*data).data_size);
+	ft_printf("r == %d -- data_size == %d\n", r, data->data_size);
+	(*data).return_code = ntohl((*data).return_code);
+	(*data).total_parts = ntohl((*data).total_parts);
+	(*data).part_nb = ntohl((*data).part_nb);
+	(*data).part_size = ntohl((*data).part_size);
+	return (data->data_size);
+}
+
 void	usage(char *str) {
 	ft_printf("Usage: %s <port>\n", str);
 	exit(EXIT_FAILURE);
@@ -55,58 +71,6 @@ int		exec_fork(char *cmd, int sock)
 	return (0);
 }
 
-int		exec_get(char *cmd, int sock)
-{
-	send(sock, cmd, ft_strlen(cmd), 0);
-	return (0);
-}
-
-int		exec_put(char *cmd, int sock)
-{
-	char			**args;
-	int				file_fd;
-	unsigned long	transmit_left;
-	struct stat		stat;
-	t_data			data;
-	int				r;
-	int				part_nb;
-
-	ft_bzero(&data, DATASIZE);
-	args = ft_strsplit(cmd, ' ');
-	if (!args || !args[1])
-	{
-		ft_printf("put: No file given\n");
-		return (1);
-	}
-	if ((file_fd = open(args[1], O_RDONLY)) == -1)
-	{
-		ft_printf("put: failed to open file: %s\n", args[1]);
-		return (1);
-	}
-	if (fstat(file_fd, &stat) < 0)
-	{
-		ft_printf("put: failed to stat file: %s\nTransfer aborted", args[1]);
-		return (1);
-	}
-	send(sock, cmd, ft_strlen(cmd), 0);
-	data.data_size = htonl(stat.st_size);
-	data.total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);
-	transmit_left = stat.st_size;
-	part_nb = 1;
-	while (transmit_left > 0)
-	{
-		data.part_nb = htonl(part_nb++);
-		r = read(file_fd, &data.data, BUFSIZE - 1);
-		data.data[r] = '\0';
-		data.part_size = htonl(r); 
-		send(sock, &data, DATASIZE, 0);
-		printf("transmit_left == %lu\n", transmit_left);
-		transmit_left -= r;
-	}
-	close(file_fd);
-	return (0);
-}
-
 int		exec_cmds(int sock, char *cmd)
 {
 	int			i;
@@ -121,18 +85,16 @@ int		exec_cmds(int sock, char *cmd)
 	{
 		if (ft_strncmp(g_commands[j].id, cmd, i) == 0)
 		{
+			ft_printf("cmd == %s -- j == %d\n", cmd, j);
 			if (g_commands[j].f(cmd, sock) == 0)
 			{
 				recv(sock, &data, DATASIZE, 0);
 				data.data_size = ntohl(data.data_size);
-				data.return_code = ntohs(data.return_code);
+				data.return_code = ntohl(data.return_code);
 				data.total_parts = ntohl(data.total_parts);
 				data.part_size = ntohl(data.part_size);
 				data.part_nb = ntohl(data.part_nb);
-				if (data.data_size > 1)
-					ft_printf("size == [%ld], parts == [%ld], part_nb == [%ld]\ndata == %s\n", data.data_size, data.total_parts, data.part_nb, data.data);
-				else
-					ft_printf("size == [%ld], return_code == [%ld]\ndata == %s\n", data.data_size, data.return_code, data.data);
+				ft_printf("Server response : %s%s%s\n", data.return_code ? RED : GRN, data.data, NRM);
 				return (1);
 			}
 			return (0);
@@ -171,7 +133,6 @@ void	prompt()
 void	user_interface(int sock)
 {
 	char	*line;
-	char	path[256];
 
 	line = NULL;
 	while (1)
@@ -179,17 +140,16 @@ void	user_interface(int sock)
 		prompt();
 		if (get_next_line(0, &line) > 0)
 		{
+			if (ft_strlen(line) == 0)
+				return;
+			ft_printf("line == %s\n", line);
 			if (ft_strcmp(line, "quit") == 0)
 			{
 				ft_strdel(&line);
 				break;
 			}
-			else if (exec_cmds(sock, line) == 0)
-			{
-				realpath(line, path);
-				ft_printf("real path == %s\n", path);
-				ft_printf("t_data size == [%d]\n", DATASIZE);
-			}
+			else if (exec_cmds(sock, line) ==  0)
+				ft_printf("Commande not found\nNew commands coming soon\n", DATASIZE);
 			ft_strdel(&line);
 		}
 	}

@@ -36,6 +36,34 @@ int		create_server(int port) {
 	return (sock);
 }
 
+void	flush_socket(int socket)
+{
+	t_data		data;
+	while (1)
+	{	
+		recv(socket, &data, DATASIZE, 0);
+		data.data_size = ntohl(data.data_size);
+		data.total_parts = ntohl(data.total_parts);
+		data.part_nb = ntohl(data.part_nb);
+		data.part_size = ntohl(data.part_size);
+		if (data.part_nb == data.total_parts)
+			break;
+	}
+}
+
+int		rec_data(t_data *data, int socket)
+{
+	ft_bzero(data, DATASIZE);
+	DEBUG
+	recv(socket, data, DATASIZE, 0);
+	data->data_size = ntohl(data->data_size);
+	data->return_code = ntohl(data->return_code);
+	data->total_parts = ntohl(data->total_parts);
+	data->part_nb = ntohl(data->part_nb);
+	data->part_size = ntohl(data->part_size);
+	return (data->data_size);
+}
+
 int		send_success(int csock, char *name)
 {
 	t_data			data;
@@ -44,20 +72,22 @@ int		send_success(int csock, char *name)
 	ft_strcat(data.data, "received file ");
 	ft_strcat(data.data, name);
 	data.data_size = htonl(0);
-	data.return_code = htons(0);
+	data.return_code = htonl(0);
 	send(csock, &data, DATASIZE, 0);
 	return (0);
 }
 
-int		send_error(int csock, char *name)
+int		send_error(int csock, char *name, int flush)
 {
 	t_data			data;
 
+	if (flush)
+		flush_socket(csock);
 	ft_strcpy(data.data, "CMD: Transmission error ");
 	ft_strcat(data.data, "for file ");
 	ft_strcat(data.data, name);
 	data.data_size = htonl(0);
-	data.return_code = htons(1);
+	data.return_code = htonl(1);
 	send(csock, &data, DATASIZE, 0);
 	return (1);
 }
@@ -84,7 +114,7 @@ int		exec_ls(char **cmd, int csock)
 	int			status;
 
 	if ((pid = fork()) == -1)
-		return (send_error(csock, "cacaprout"));
+		return (send_error(csock, "cacaprout", 0));
 	if (pid > 0)
 	{
 		printf("entered in fork parent for execution\n");
@@ -92,7 +122,7 @@ int		exec_ls(char **cmd, int csock)
 		if (WEXITSTATUS(status) == 0)
 			send_success(csock, "caca");
 		else
-			send_error(csock, "prout");
+			send_error(csock, "prout", 0);
 		printf("exited parent -- Child exited with status [%d] -- [%d]\n", WEXITSTATUS(status), status);
 	}
 	else
@@ -110,7 +140,7 @@ int		exec_pwd(char **cmd, int csock)
 	int			status;
 
 	if ((pid = fork()) == -1)
-		return (send_error(csock, "cacaprout"));
+		return (send_error(csock, "cacaprout", 0));
 	if (pid > 0)
 	{
 		printf("entered in fork parent for execution\n");
@@ -118,7 +148,7 @@ int		exec_pwd(char **cmd, int csock)
 		if (WEXITSTATUS(status) == 0)
 			send_success(csock, "caca");
 		else
-			send_error(csock, "prout");
+			send_error(csock, "prout", 0);
 		printf("exited parent -- Child exited with status [%d] -- [%d]\n", WEXITSTATUS(status), status);
 	}
 	else
@@ -147,7 +177,7 @@ int		exec_cd(char **cmd, int csock)
 		{
 			chdir(path);
 			ft_printf("%s\n", "cd failure");
-			ret = send_error(csock, "cd failure");
+			ret = send_error(csock, "cd failure", 0);
 		}
 		ft_printf("%s\n", "cd success");
 	}
@@ -158,16 +188,41 @@ int		exec_cd(char **cmd, int csock)
 
 int		exec_get(char **cmd, int csock)
 {
-	t_data		data;
+	int				file_fd;
+	unsigned long	transmit_left;
+	struct stat		stat;
+	t_data			data;
+	int				r;
+	int				part_nb;
 
-	cmd = NULL;
-	send_success(csock, "rien a dire");
-	return (0);
-	data.data_size = htonl(ft_strlen("je suis beau"));
-	data.total_parts = htonl(1);
-	data.part_nb = htonl(1);
-	ft_strcpy(data.data, "je suis beau");
+	if (!cmd[1])
+		return (send_error(csock, "no file given", 1));
+	else if ((file_fd = open(cmd[1], O_RDONLY, 0)) == -1)
+		return (send_error(csock, "file creation failed", 1));
+	if (fstat(file_fd, &stat) < 0)
+		return (send_error(csock, "failed to stat file", 0));
+	ft_printf("file : %s -- size == %lu\n", cmd[1], stat.st_size);
+	ft_bzero(&data, DATASIZE);
+	data.data_size = htonl(stat.st_size);
+	data.total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);
+	transmit_left = stat.st_size;
+	part_nb = 1;
+	ft_strcpy(data.data, cmd[1]);
 	send(csock, &data, DATASIZE, 0);
+	if (!rec_data(&data, csock))
+		return (send_error(csock, "client error - get aborted", 0));
+	ft_printf("return client : %s\n", data.data);
+	while (transmit_left > 0)
+	{
+		data.part_nb = htonl(part_nb++);
+		r = read(file_fd, &data.data, BUFSIZE - 1);
+		data.data[r] = '\0';
+		data.part_size = htonl(r); 
+		send(csock, &data, DATASIZE, 0);
+		ft_printf("transmit_left == %lu\n", transmit_left);
+		transmit_left -= r;
+	}
+	close(file_fd);
 	return (0);
 }
 
@@ -181,9 +236,9 @@ int		exec_put(char **cmd, int csock)
 	size = 0;
 	prev_part = 1;
 	if (!cmd[1])
-		return (send_error(csock, "no file given"));
-	if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_TRUNC, S_IROTH | S_IWUSR)) == -1)
-		return (send_error(csock, "file creation failed"));
+		return (send_error(csock, "no file given", 1));
+	else if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
+		return (send_error(csock, "file creation failed", 1));
 	while (1)
 	{	
 		recv(csock, &data, DATASIZE, 0);
@@ -191,13 +246,14 @@ int		exec_put(char **cmd, int csock)
 		data.total_parts = ntohl(data.total_parts);
 		data.part_nb = ntohl(data.part_nb);
 		data.part_size = ntohl(data.part_size);
-		ft_printf("size == %lu -- part_size == %lu -- part == %lu/%lu\n%s\n", data.data_size, data.part_size, data.part_nb, data.total_parts, data.data);
+		ft_printf("size == %lu -- part_size == %lu -- part == %lu/%lu\n%s\nfd == %d\n", data.data_size, data.part_size, data.part_nb, data.total_parts, data.data, file_fd);
+		ft_printf("data == %50s\n", data.data);
 		if (data.part_nb == prev_part++)
 			write(file_fd, data.data, data.part_size);
 		else
 		{
 			unlink(cmd[1]);
-			return (send_error(csock, cmd[1]));
+			return (send_error(csock, cmd[1], 0));
 		}
 		size += data.part_size;
 		if (data.part_nb == data.total_parts)
@@ -206,7 +262,7 @@ int		exec_put(char **cmd, int csock)
 				send_success(csock, cmd[1]);
 			else {
 				unlink(cmd[1]);
-				return (send_error(csock, cmd[1]));
+				return (send_error(csock, cmd[1], 0));
 			}
 			break ;
 		}
@@ -241,19 +297,26 @@ int		handle_connections(int port) {
 			// printf("WEXITSTATUS == %d\n", WEXITSTATUS(status));
 		}
 		else {
-			while ((r = recv(cs, &buf, 1023, 0)) > 0) {
+			while ((r = recv(cs, &buf, BUFSIZE-1, 0)) > 0) {
+				DEBUG
+				ft_printf("r == %d\n", r);
 				buf[r] = '\0';
 				cmd = ft_strsplit(buf, ' ');
 				i = 0;
 				printf("command == %s\n", cmd[0]);
-				while (i < CMDS_NB)
+				while (cmd && i < CMDS_NB)
 				{
 					if (ft_strcmp(g_commands[i].id, cmd[0]) == 0)
+					{
 						g_commands[i].f(cmd, cs);
+						break ;
+					}
 					i++;
 				}
+				ft_printf("end of command %s\n", cmd[0]);
 				ft_tabdel(&cmd);
 			}
+			ft_printf("closing connection\n");
 			close(cs);
 		}
 	}

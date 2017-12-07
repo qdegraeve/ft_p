@@ -32,7 +32,7 @@ typedef struct 			s_client_cmds
 
 typedef struct			s_data
 {
-	unsigned short		return_code;
+	unsigned long		return_code;
 	unsigned long		data_size; // if data_size == 0 --> end of command
 	unsigned long		total_parts;
 	unsigned long		part_nb;
@@ -42,5 +42,7 @@ typedef struct			s_data
 
 char	**ft_ls(char **args);
 void	prompt();
+int		rec_data(t_data *data, int socket);
+
 
 #endif

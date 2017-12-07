@@ -16,6 +16,8 @@ SRCS_SERVER = \
 
 SRCS_CLIENT = \
 	   c_main.c \
+	   c_get.c \
+	   c_put.c
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))
@@ -73,4 +75,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all client server clean fclean re
