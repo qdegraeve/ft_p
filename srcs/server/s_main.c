@@ -1,10 +1,4 @@
-#include "ftp.h"
-
-int		exec_ls(char **cmd, int socket);
-int		exec_cd(char **cmd, int socket);
-int		exec_pwd(char **cmd, int socket);
-int		exec_get(char **cmd, int socket);
-int		exec_put(char **cmd, int socket);
+#include "server.h"
 
 static const t_server_cmds g_commands[CMDS_NB] = {
 	{ "cd", &exec_cd },
@@ -49,19 +43,6 @@ void	flush_socket(int socket)
 		if (data.part_nb == data.total_parts)
 			break;
 	}
-}
-
-int		rec_data(t_data *data, int socket)
-{
-	ft_bzero(data, DATASIZE);
-	DEBUG
-	recv(socket, data, DATASIZE, 0);
-	data->data_size = ntohl(data->data_size);
-	data->return_code = ntohl(data->return_code);
-	data->total_parts = ntohl(data->total_parts);
-	data->part_nb = ntohl(data->part_nb);
-	data->part_size = ntohl(data->part_size);
-	return (data->data_size);
 }
 
 int		send_success(int csock, char *name)
@@ -223,6 +204,7 @@ int		exec_get(char **cmd, int csock)
 		transmit_left -= r;
 	}
 	close(file_fd);
+	send_success(csock, cmd[1]);
 	return (0);
 }
 
@@ -298,7 +280,6 @@ int		handle_connections(int port) {
 		}
 		else {
 			while ((r = recv(cs, &buf, BUFSIZE-1, 0)) > 0) {
-				DEBUG
 				ft_printf("r == %d\n", r);
 				buf[r] = '\0';
 				cmd = ft_strsplit(buf, ' ');
@@ -318,6 +299,7 @@ int		handle_connections(int port) {
 			}
 			ft_printf("closing connection\n");
 			close(cs);
+			break ;
 		}
 	}
 	close(sock);

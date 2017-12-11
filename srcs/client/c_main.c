@@ -1,9 +1,4 @@
-#include "ftp.h"
-
-int		exec_cd(char *cmd, int sock);
-int		exec_fork(char *cmd, int sock);
-int		exec_get(char *cmd, int sock);
-int		exec_put(char *cmd, int sock);
+#include "client.h"
 
 static const t_client_cmds	g_commands[CMDS_NB] = {
 	{ "cd", &exec_cd },
@@ -12,22 +7,6 @@ static const t_client_cmds	g_commands[CMDS_NB] = {
 	{ "get", &exec_get },
 	{ "put", &exec_put }
 };
-
-
-int		rec_data(t_data *data, int socket)
-{
-	int		r;
-
-	ft_bzero(data, DATASIZE);
-	r = recv(socket, data, DATASIZE, 0);
-	(*data).data_size = ntohl((*data).data_size);
-	ft_printf("r == %d -- data_size == %d\n", r, data->data_size);
-	(*data).return_code = ntohl((*data).return_code);
-	(*data).total_parts = ntohl((*data).total_parts);
-	(*data).part_nb = ntohl((*data).part_nb);
-	(*data).part_size = ntohl((*data).part_size);
-	return (data->data_size);
-}
 
 void	usage(char *str) {
 	ft_printf("Usage: %s <port>\n", str);
@@ -149,29 +128,32 @@ void	user_interface(int sock)
 				break;
 			}
 			else if (exec_cmds(sock, line) ==  0)
-				ft_printf("Commande not found\nNew commands coming soon\n", DATASIZE);
+				ft_printf("Command not found\nNew commands coming soon\n");
+			DEBUG
 			ft_strdel(&line);
+			DEBUG
 		}
 	}
+}
+
+int		get_current_socket(int current)
+{
+	static int 	socket = -1;
+
+	if (socket == -1)
+		socket = current;
+	return (socket);
 }
 
 int		main(int ac, char **av) {
 	int					port;
 	int					sock;
-	// int					r;
-	// char				buf[1024];
 
 	if (ac != 3)
 		usage(av[0]);
 	port = ft_atoi(av[2]);
-	sock = create_client(av[1], port);
-	// while (r > 0) {
-	// 	buf[r] = '\0';
-	// 	printf("send == %zd\n", send(sock, buf, r, 0));
-	// 	if (ft_strcmp(buf, "exit\n") == 0)
-	// 		break;
-	// 	r = read(0, &buf, 1023);
-	// }
+	sock = get_current_socket(create_client(av[1], port));
+	signal_catcher();
 	user_interface(sock);
 	close(sock);
 	return (0);

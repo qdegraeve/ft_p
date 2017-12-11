@@ -10,14 +10,17 @@ LIB = $(LIBPATH)/libft.a
 
 INCLUDES = includes/
 
-VPATH = srcs/client:srcs/server
+VPATH = srcs/client:srcs/server:srcs/shared_functions
 SRCS_SERVER = \
-	   s_main.c
+	   s_main.c \
+	   rec_data.c
 
 SRCS_CLIENT = \
 	   c_main.c \
 	   c_get.c \
-	   c_put.c
+	   c_put.c \
+	   rec_data.c \
+	   c_signals.c
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))
@@ -38,12 +41,16 @@ server: $(LIB) $(OBJS_SERVER)
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $(NAME_SERVER) $(OBJS_SERVER) -I $(INCLUDES)
 	@echo "\n # ft_p server : Job done $(shell pwd)/$(NAME_SERVER)"
 
-$(OBJDIR)%.o: %.c $(OBJDIR)
+$(OBJDIR)%.o: %.c | $(OBJDIR)
 	@echo "\r + ft_p : Compiling $(OBJDIR) < $^\c"
 	@$(CC) $(CFLAGS) -o $@ -c $< -I libft/include -I $(INCLUDES)
 
 $(OBJDIR):
-	mkdir $(OBJDIR)
+	$(shell\
+		if [ -d $(OBJDIR) ]; then : ; \
+		else\
+			mkdir $(OBJDIR); \
+		fi)
 
 clean:
 	make -C $(LIBPATH) clean
@@ -75,4 +82,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all client server clean fclean re
+.PHONY: default all client server $(OBJDIR) clean fclean re

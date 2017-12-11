@@ -1,4 +1,4 @@
-#include "ftp.h"
+#include "client.h"
 
 int		exec_put(char *cmd, int sock)
 {
