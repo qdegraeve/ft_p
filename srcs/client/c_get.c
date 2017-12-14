@@ -26,7 +26,6 @@ int		open_file(int socket, t_data *data)
 		ft_putendl_fd("Failed to create file", 2);
 		return (-1);
 	}
-	ft_printf("file_fd in open_file function == %d\n", file_fd);
 	return (file_fd);
 }
 
@@ -44,10 +43,7 @@ int		exec_get(char *cmd, int socket)
 	prev_part = 1;
 	send(socket, cmd, ft_strlen(cmd), 0);
 	if ((file_fd = open_file(socket, &data)) == -1)
-	{
-		send_error(socket, data.data);
 		return (1);
-	}
 	ft_strcpy(filename, data.data);
 	ft_strcpy(data.data, "File created successfully");
 	send(socket, &data, DATASIZE, 0);

@@ -1,13 +1,5 @@
 #include "client.h"
 
-static const t_client_cmds	g_commands[CMDS_NB] = {
-	{ "cd", &exec_cd },
-	{ "pwd", &exec_fork },
-	{ "ls", &exec_fork },
-	{ "get", &exec_get },
-	{ "put", &exec_put }
-};
-
 void	usage(char *str) {
 	ft_printf("Usage: %s <port>\n", str);
 	exit(EXIT_FAILURE);
@@ -32,54 +24,19 @@ int		create_client(char *addr, int port) {
 	return (sock);
 }
 
-int		exec_cd(char *cmd, int sock)
+void	print_server_pwd()
 {
-	send(sock, cmd, ft_strlen(cmd), 0);
-	return (0);
-}
+	char	cmd[6];
+	char	buf[256];
+	int		sock;
+	int		i;
 
-int		exec_fork(char *cmd, int sock)
-{
-	int			i;
-	char		buf[42000];
-
+	sock = get_current_socket(0);
+	ft_strcpy(cmd, "where");
 	send(sock, cmd, ft_strlen(cmd), 0);
 	i = recv(sock, buf, 41999, 0);
 	buf[i] = '\0';
-	write(1, buf, i);	
-	return (0);
-}
-
-int		exec_cmds(int sock, char *cmd)
-{
-	int			i;
-	int 		j;
-	t_data		data;
-
-	i = 0;
-	j = -1;
-	while (cmd[i] && cmd[i] != ' ')
-		i++;
-	while (i && ++j < CMDS_NB)
-	{
-		if (ft_strncmp(g_commands[j].id, cmd, i) == 0)
-		{
-			ft_printf("cmd == %s -- j == %d\n", cmd, j);
-			if (g_commands[j].f(cmd, sock) == 0)
-			{
-				recv(sock, &data, DATASIZE, 0);
-				data.data_size = ntohl(data.data_size);
-				data.return_code = ntohl(data.return_code);
-				data.total_parts = ntohl(data.total_parts);
-				data.part_size = ntohl(data.part_size);
-				data.part_nb = ntohl(data.part_nb);
-				ft_printf("Server response : %s%s%s\n", data.return_code ? RED : GRN, data.data, NRM);
-				return (1);
-			}
-			return (0);
-		}
-	}
-	return (0);
+	ft_putstr(buf);
 }
 
 char	*get_pwd_prompt(char *path)
@@ -94,17 +51,21 @@ char	*get_pwd_prompt(char *path)
 	return (path + i + 1);
 }
 
-void	prompt()
+void	prompt(int error)
 {
 	char	*path;
 
 	path = NULL;
 	path = getcwd(path, 255);
-	// if (g_returned_error > 0)
-	ft_printf("%s %s: > ", get_pwd_prompt(path), GRN);
+	if (error)
+		ft_printf("%s %s: > ", get_pwd_prompt(path), RED);
+	else
+	{
+		ft_printf("%s (", get_pwd_prompt(path));
+		print_server_pwd();
+		ft_printf(") %s: > ", GRN);
+	}
 	ft_printf("%s", NRM);
-	// else
-		// ft_printf("%s \033[1;32m: > ", get_pwd_prompt(path));
 	if (path)
 		ft_strdel(&path);
 }
@@ -112,26 +73,25 @@ void	prompt()
 void	user_interface(int sock)
 {
 	char	*line;
+	int		error;
 
+	error = 0;
 	line = NULL;
 	while (1)
 	{
-		prompt();
+		prompt(error);
 		if (get_next_line(0, &line) > 0)
 		{
 			if (ft_strlen(line) == 0)
-				return;
-			ft_printf("line == %s\n", line);
+				continue ;
 			if (ft_strcmp(line, "quit") == 0)
 			{
 				ft_strdel(&line);
 				break;
 			}
-			else if (exec_cmds(sock, line) ==  0)
-				ft_printf("Command not found\nNew commands coming soon\n");
-			DEBUG
+			else if ((error = exec_cmds(sock, line)) ==  -1)
+				ft_printf("%sCommand not found\nNew commands coming soon\n%s", RED, NRM);
 			ft_strdel(&line);
-			DEBUG
 		}
 	}
 }

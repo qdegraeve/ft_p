@@ -26,8 +26,9 @@ typedef struct			s_data
 	char				data[BUFSIZE];
 }						t_data;
 
-char	**ft_ls(char **args);
-int		rec_data(t_data *data, int socket);
+char		**ft_ls(char **args);
+int			rec_data(t_data *data, int socket);
+int			has_operator(const char **cmd);
 
 
 #endif

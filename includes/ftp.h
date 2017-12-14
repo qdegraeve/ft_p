@@ -14,7 +14,6 @@
 
 # define BUFSIZE	1024
 # define DATASIZE	sizeof(t_data)
-# define CMDS_NB	5
 
 typedef struct			s_data
 {

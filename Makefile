@@ -13,14 +13,24 @@ INCLUDES = includes/
 VPATH = srcs/client:srcs/server:srcs/shared_functions
 SRCS_SERVER = \
 	   s_main.c \
-	   rec_data.c
+	   s_get.c \
+	   s_put.c \
+	   s_cd.c \
+	   s_ls.c \
+	   s_handle_cmds.c \
+	   s_pwd.c \
+	   s_where.c \
+	   rec_data.c \
+	   fork_utils.c
 
 SRCS_CLIENT = \
 	   c_main.c \
 	   c_get.c \
 	   c_put.c \
+	   c_signals.c \
+	   c_handle_cmds.c \
 	   rec_data.c \
-	   c_signals.c
+	   fork_utils.c
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))
