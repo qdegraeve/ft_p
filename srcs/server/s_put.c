@@ -11,7 +11,7 @@ int		exec_put(const char **cmd, int csock)
 	prev_part = 1;
 	if (!cmd[1])
 		return (send_error(csock, "No file given", 1));
-	else if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
+	else if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_EXCL, S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
 		return (send_error(csock, "File creation failed", 1));
 	while (1)
 	{	

@@ -11,6 +11,7 @@ int		exec_pwd(const char **cmd, int csock)
 	{
 		printf("entered in fork parent for execution\n");
 		wait4(pid, &status, 0, NULL);
+		send(csock, "&exit_fork", 10, 0);
 		if (WEXITSTATUS(status) == 0)
 			send_success(csock, "pwd : success");
 		else

@@ -12,15 +12,16 @@ static const t_server_cmds g_commands[CMDS_NB] = {
 static void	flush_socket(int socket)
 {
 	t_data			data;
+
 	while (1)
-	{	
+	{
 		recv(socket, &data, DATASIZE, 0);
 		data.data_size = ntohl(data.data_size);
 		data.total_parts = ntohl(data.total_parts);
 		data.part_nb = ntohl(data.part_nb);
 		data.part_size = ntohl(data.part_size);
 		if (data.part_nb == data.total_parts)
-			break;
+			break ;
 	}
 }
 
@@ -59,7 +60,8 @@ void		handle_cmds(int socket)
 
 	cmd = NULL;
 	i = 0;
-	while ((r = recv(socket, &buf, BUFSIZE-1, 0)) > 0) {
+	while ((r = recv(socket, &buf, BUFSIZE - 1, 0)) > 0)
+	{
 		buf[r] = '\0';
 		cmd = ft_strsplit(buf, ' ');
 		ft_printf("command == %s\n", cmd[0]);

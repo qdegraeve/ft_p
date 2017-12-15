@@ -31,9 +31,8 @@ int		exec_get(const char **cmd, int csock)
 		data.part_nb = htonl(part_nb++);
 		r = read(file_fd, &data.data, BUFSIZE - 1);
 		data.data[r] = '\0';
-		data.part_size = htonl(r); 
+		data.part_size = htonl(r);
 		send(csock, &data, DATASIZE, 0);
-		ft_printf("transmit_left == %lu\n", transmit_left);
 		transmit_left -= r;
 	}
 	close(file_fd);

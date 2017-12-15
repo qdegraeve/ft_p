@@ -5,7 +5,10 @@ static const t_client_cmds	g_commands[CMDS_NB] = {
 	{ "pwd", &exec_fork },
 	{ "ls", &exec_fork },
 	{ "get", &exec_get },
-	{ "put", &exec_put }
+	{ "put", &exec_put },
+	{ "lcd", &exec_lcd },
+	{ "lls", &exec_lls },
+	{ "lpwd", &exec_lpwd }
 };
 
 int		exec_cd(char *cmd, int sock)
@@ -29,29 +32,27 @@ int		exec_fork(char *cmd, int sock)
 int		exec_cmds(int sock, char *cmd)
 {
 	int			i;
-	int 		j;
+	int			j;
 	t_data		data;
+	int			ret;
 
 	i = 0;
 	j = -1;
+	ret = 0;
 	while (cmd[i] && cmd[i] != ' ')
 		i++;
 	while (i && ++j < CMDS_NB)
 	{
 		if (ft_strncmp(g_commands[j].id, cmd, i) == 0)
 		{
-			if (g_commands[j].f(cmd, sock) == 0)
+			if (((ret = g_commands[j].f(cmd, sock)) == 0) && j < 5)
 			{
-				recv(sock, &data, DATASIZE, 0);
-				data.data_size = ntohl(data.data_size);
-				data.return_code = ntohl(data.return_code);
-				data.total_parts = ntohl(data.total_parts);
-				data.part_size = ntohl(data.part_size);
-				data.part_nb = ntohl(data.part_nb);
-				ft_printf("%s%s%s\n", data.return_code ? RED : GRN, data.data, NRM);
+				rec_data(&data, sock);
+				ft_printf("%s%s%s\n", data.return_code ? RED : GRN,
+					data.data, NRM);
 				return (data.return_code);
 			}
-			return (1);
+			return (ret);
 		}
 	}
 	return (-1);

@@ -14,9 +14,4 @@ void	ctrl_c(int signal)
 void	signal_catcher(void)
 {
 	signal(SIGINT, ctrl_c);
-	signal(SIGQUIT, SIG_IGN);
-	signal(SIGTSTP, SIG_IGN);
-	signal(SIGTTIN, SIG_IGN);
-	signal(SIGTTOU, SIG_IGN);
-	signal(SIGTRAP, SIG_IGN);
 }

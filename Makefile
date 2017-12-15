@@ -29,6 +29,9 @@ SRCS_CLIENT = \
 	   c_put.c \
 	   c_signals.c \
 	   c_handle_cmds.c \
+	   c_lls.c \
+	   c_lcd.c \
+	   c_lpwd.c \
 	   rec_data.c \
 	   fork_utils.c
 

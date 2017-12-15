@@ -11,28 +11,27 @@ typedef struct			s_server_cmds
 	int					(*f)(const char **cmd, int csock);
 }						t_server_cmds;
 
-
 /*
 **			HANDLE COMMANDS
 */
-int			send_success(int csock, const char *name);
-int			send_error(int csock, const char *name, int flush);
-void		handle_cmds(int socket);
+int						send_success(int csock, const char *name);
+int						send_error(int csock, const char *name, int flush);
+void					handle_cmds(int socket);
 
 /*
 **			COMMANDS
 */
-int			exec_ls(const char **cmd, int socket);
-int			exec_cd(const char **cmd, int socket);
-int			exec_pwd(const char **cmd, int socket);
-int			exec_get(const char **cmd, int socket);
-int			exec_put(const char **cmd, int socket);
-int			exec_where(const char **cmd, const int csock);
-int			has_operator(const char **cmd);
+int						exec_ls(const char **cmd, int socket);
+int						exec_cd(const char **cmd, int socket);
+int						exec_pwd(const char **cmd, int socket);
+int						exec_get(const char **cmd, int socket);
+int						exec_put(const char **cmd, int socket);
+int						exec_where(const char **cmd, const int csock);
+int						has_operator(const char **cmd);
 
 /*
 **			MISCS
 */
-char		*get_base_path();
+char					*get_base_path();
 
 #endif

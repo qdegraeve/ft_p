@@ -5,26 +5,60 @@ void	usage(char *str) {
 	exit(EXIT_FAILURE);
 }
 
+int hostname_to_ip(char *hostname , char *ip)
+{
+    struct addrinfo hints;
+    struct addrinfo *servinfo;
+    int rv;
+ 
+    ft_memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    if ( (rv = getaddrinfo( hostname , "http" , &hints , &servinfo)) != 0) 
+    {
+        ft_printf("getaddrinfo: error\n");
+        return (1);
+    }
+    ft_strcpy(ip , inet_ntoa( ((struct sockaddr_in *)servinfo->ai_addr)->sin_addr ) );
+
+     
+    freeaddrinfo(servinfo);
+    return 0;
+}
+
 int		create_client(char *addr, int port) {
 	int					sock;
 	struct protoent		*proto;
 	struct sockaddr_in	sin;
+	struct timeval		time;
+	char 				ip[100];
 
 	proto = getprotobyname("tcp");
-	if (!proto)
+	if (!proto || hostname_to_ip(addr , ip) > 0)
 		return (-1);
-	sock = socket(PF_INET, SOCK_STREAM, proto->p_proto);
+	if ((sock = socket(PF_INET, SOCK_STREAM, proto->p_proto)) == -1)
+	{
+		ft_printf("Failed to create socket");
+		exit(EXIT_FAILURE);
+	}
+	time.tv_sec = 1;
+	time.tv_usec = 0;
+	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &time, sizeof(time)) == -1)
+	{
+		ft_printf("Failed to set timeout for socket: %d\n", sock);
+		exit(EXIT_FAILURE);		
+	}
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port); /* convert port to network endianess */
-	sin.sin_addr.s_addr = inet_addr(addr); /* set the server address as requested by user */
+	sin.sin_addr.s_addr = inet_addr(ip); /* set the server address as requested by user */
 	if (connect(sock, (const struct sockaddr *)&sin, sizeof(sin)) == -1) {
-		ft_printf("connect error\n");
+		ft_printf("Connect error on socket : %d\n", sock);
 		exit(EXIT_FAILURE);
-	};
+	}
 	return (sock);
 }
 
-void	print_server_pwd()
+char	*get_server_pwd()
 {
 	char	cmd[6];
 	char	buf[256];
@@ -36,7 +70,7 @@ void	print_server_pwd()
 	send(sock, cmd, ft_strlen(cmd), 0);
 	i = recv(sock, buf, 41999, 0);
 	buf[i] = '\0';
-	ft_putstr(buf);
+	return (ft_strdup(buf));
 }
 
 char	*get_pwd_prompt(char *path)
@@ -54,20 +88,20 @@ char	*get_pwd_prompt(char *path)
 void	prompt(int error)
 {
 	char	*path;
+	char	*server_pwd;
 
 	path = NULL;
 	path = getcwd(path, 255);
+	server_pwd = get_server_pwd();
 	if (error)
-		ft_printf("%s %s: > ", get_pwd_prompt(path), RED);
+		ft_printf("%sl-> %s %s(s-> %s)%s: X ", CYN, get_pwd_prompt(path), YEL, server_pwd, RED);
 	else
 	{
-		ft_printf("%s (", get_pwd_prompt(path));
-		print_server_pwd();
-		ft_printf(") %s: > ", GRN);
+		ft_printf("%sl-> %s %s(s-> %s)%s: <3 ", CYN, get_pwd_prompt(path), YEL, server_pwd, GRN);
 	}
 	ft_printf("%s", NRM);
-	if (path)
-		ft_strdel(&path);
+	ft_strdel(&path);
+	ft_strdel(&server_pwd);
 }
 
 void	user_interface(int sock)
@@ -112,7 +146,8 @@ int		main(int ac, char **av) {
 	if (ac != 3)
 		usage(av[0]);
 	port = ft_atoi(av[2]);
-	sock = get_current_socket(create_client(av[1], port));
+	if ((sock = get_current_socket(create_client(av[1], port))) == -1)
+		return (1);
 	signal_catcher();
 	user_interface(sock);
 	close(sock);

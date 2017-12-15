@@ -1,11 +1,13 @@
 #include "server.h"
 
-void	usage(char *str) {
+void	usage(char *str)
+{
 	ft_printf("Usage: %s <port>\n", str);
 	exit(EXIT_FAILURE);
 }
 
-int		create_server(int port) {
+int		create_server(int port)
+{
 	int					sock;
 	struct protoent		*proto;
 	struct sockaddr_in	sin;
@@ -13,12 +15,20 @@ int		create_server(int port) {
 	proto = getprotobyname("tcp");
 	if (!proto)
 		return (-1);
-	sock = socket(PF_INET, SOCK_STREAM, proto->p_proto);
+	if ((sock = socket(PF_INET, SOCK_STREAM, proto->p_proto)) == -1)
+	{
+		ft_printf("Failed to create socket\n", port);
+		exit(EXIT_FAILURE);
+	}
 	sin.sin_family = AF_INET;
-	sin.sin_port = htons(port); /* convert port to network endianess */
-	sin.sin_addr.s_addr = INADDR_ANY; /* bind on all available address */
-	bind(sock, (const struct sockaddr*)&sin, sizeof(sin));
-	listen(sock, 42); /* can receive 42 simultaneous connections */
+	sin.sin_port = htons(port);
+	sin.sin_addr.s_addr = INADDR_ANY;
+	if (bind(sock, (const struct sockaddr*)&sin, sizeof(sin)) == -1)
+	{
+		ft_printf("Failed to bind socket on port :%d\n", port);
+		exit(EXIT_FAILURE);
+	}
+	listen(sock, 42);
 	return (sock);
 }
 
@@ -32,16 +42,20 @@ int		handle_connections(int port)
 	
 	cs = 0;
 	sock = create_server(port);
-	while (42) {
-		cs = accept(sock, (struct sockaddr *)&csin, &cslen);
+	while (42)
+	{
+		if ((cs = accept(sock, (struct sockaddr *)&csin, &cslen)) == -1)
+			continue ;
 		if ((pid = fork()) == -1)
 			return (1);
-		if (pid > 0) {
+		if (pid > 0)
+		{
 			ft_printf("connection accepted on sock: %d\n", cs);
 			signal(SIGCHLD, SIG_IGN);
 			close(cs);
 		}
-		else {
+		else
+		{
 			handle_cmds(cs);
 			ft_putendl("closing connection");
 			close(cs);
@@ -52,7 +66,7 @@ int		handle_connections(int port)
 	return (0);
 }
 
-char	*get_base_path()
+char	*get_base_path(void)
 {
 	static char		*base_path = NULL;
 
