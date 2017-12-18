@@ -32,6 +32,7 @@ SRCS_CLIENT = \
 	   c_lls.c \
 	   c_lcd.c \
 	   c_lpwd.c \
+	   c_interface.c \
 	   rec_data.c \
 	   fork_utils.c
 

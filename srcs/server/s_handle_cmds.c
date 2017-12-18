@@ -20,6 +20,7 @@ static void	flush_socket(int socket)
 		data.total_parts = ntohl(data.total_parts);
 		data.part_nb = ntohl(data.part_nb);
 		data.part_size = ntohl(data.part_size);
+		ft_printf("part_nb == %lu / %lu\n", data.part_nb, data.total_parts);
 		if (data.part_nb == data.total_parts)
 			break ;
 	}

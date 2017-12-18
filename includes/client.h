@@ -12,7 +12,15 @@ typedef struct			s_client_cmds
 	int					(*f)(char *cmd, int csock);
 }						t_client_cmds;
 
-void					prompt(int error);
+/*
+**			USER INTERFACE
+*/
+void					user_interface(int sock);
+
+/*
+**			COMMANDS HANDLERS
+*/
+int						exec_cmds(int sock, char *cmd);
 int						exec_cd(char *cmd, int sock);
 int						exec_fork(char *cmd, int sock);
 int						exec_get(char *cmd, int sock);
@@ -20,8 +28,11 @@ int						exec_put(char *cmd, int sock);
 int						exec_lcd(char *command, int sock);
 int						exec_lls(char *command, int sock);
 int						exec_lpwd(char *command, int sock);
+
+/*
+**			TOOLS
+*/
 int						get_current_socket(int current);
 void					signal_catcher(void);
-int						exec_cmds(int sock, char *cmd);
 
 #endif
