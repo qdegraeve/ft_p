@@ -12,7 +12,7 @@ int		exec_get(const char **cmd, int csock)
 	if (!cmd[1])
 		return (send_error(csock, "No file given", 0));
 	else if ((file_fd = open(cmd[1], O_RDONLY, 0)) == -1)
-		return (send_error(csock, "File creation failed", 0));
+		return (send_error(csock, "Failed to open file:", 0));
 	if (fstat(file_fd, &stat) < 0)
 		return (send_error(csock, "Failed to stat file -- get aborted", 0));
 	ft_printf("file : %s -- size == %lu\n", cmd[1], stat.st_size);
@@ -23,8 +23,10 @@ int		exec_get(const char **cmd, int csock)
 	part_nb = 1;
 	ft_strcpy(data.data, cmd[1]);
 	send(csock, &data, DATASIZE, 0);
+	DEBUG
 	if (!rec_data(&data, csock))
 		return (send_error(csock, "Client error - get aborted", 0));
+	DEBUG
 	ft_printf("return client : %s\n", data.data);
 	while (transmit_left > 0)
 	{
