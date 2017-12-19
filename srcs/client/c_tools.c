@@ -15,3 +15,12 @@ void	signal_catcher(void)
 {
 	signal(SIGINT, ctrl_c);
 }
+
+int		get_current_socket(int current)
+{
+	static int	socket = -1;
+
+	if (socket == -1)
+		socket = current;
+	return (socket);
+}

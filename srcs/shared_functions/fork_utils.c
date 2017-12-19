@@ -2,7 +2,7 @@
 
 int			has_operator(const char **cmd)
 {
-	int 	i;
+	int		i;
 
 	i = 0;
 	if (!cmd)

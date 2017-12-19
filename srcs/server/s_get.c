@@ -23,7 +23,7 @@ static int	create_file(t_data *data, int csock, const char **cmd)
 	{
 		ft_bzero(data, DATASIZE);
 		data->data_size = htonl(stat.st_size);
-		data->total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);		
+		data->total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);
 	}
 	return (ret);
 }

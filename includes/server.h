@@ -4,8 +4,9 @@
 # include "ftp.h"
 
 # define CMDS_NB		6
-# define ERROR_MSG		"Command format invalid: operators [&|;], option \
--R and files or folder names not accepted\n"
+# define ERROR_MSG_BEG	"Command format invalid: operators [&|;], option -R and"
+# define ERROR_MSG_END	" files or folder names not accepted\n"
+# define ERROR_MSG		ERROR_MSG_BEG ERROR_MSG_END
 # define ERROR_LENGTH	sizeof(ERROR_MSG)
 
 typedef struct			s_server_cmds

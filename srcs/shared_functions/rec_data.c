@@ -1,4 +1,4 @@
-# include "ftp.h"
+#include "ftp.h"
 
 int		rec_data(t_data *data, int socket)
 {

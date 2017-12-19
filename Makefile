@@ -20,6 +20,7 @@ SRCS_SERVER = \
 	   s_handle_cmds.c \
 	   s_pwd.c \
 	   s_where.c \
+	   s_tools.c \
 	   rec_data.c \
 	   fork_utils.c
 
@@ -27,7 +28,7 @@ SRCS_CLIENT = \
 	   c_main.c \
 	   c_get.c \
 	   c_put.c \
-	   c_signals.c \
+	   c_tools.c \
 	   c_handle_cmds.c \
 	   c_lls.c \
 	   c_lcd.c \

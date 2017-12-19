@@ -1,12 +1,12 @@
 #include "server.h"
 
-void	usage(char *str)
+static void	usage(char *str)
 {
 	ft_printf("Usage: %s <port>\n", str);
 	exit(EXIT_FAILURE);
 }
 
-int		create_server(int port)
+static int	create_server(int port)
 {
 	int					sock;
 	struct protoent		*proto;
@@ -32,50 +32,49 @@ int		create_server(int port)
 	return (sock);
 }
 
-int		handle_connections(int port)
+static int	fork_for_connection(int cs)
+{
+	pid_t				pid;
+
+	if ((pid = fork()) == -1)
+		return (1);
+	if (pid > 0)
+	{
+		ft_printf("connection accepted on sock: %d\n", cs);
+		signal(SIGCHLD, SIG_IGN);
+		close(cs);
+	}
+	else
+	{
+		handle_cmds(cs);
+		ft_putendl("closing connection");
+		close(cs);
+		exit(EXIT_SUCCESS);
+	}
+	return (0);
+}
+
+static int	handle_connections(int port)
 {
 	int					sock;
 	int					cs;
 	unsigned int		cslen;
 	struct sockaddr_in	csin;
-	pid_t				pid;
-	
+
 	cs = 0;
 	sock = create_server(port);
 	while (42)
 	{
 		if ((cs = accept(sock, (struct sockaddr *)&csin, &cslen)) == -1)
 			continue ;
-		if ((pid = fork()) == -1)
-			return (1);
-		if (pid > 0)
-		{
-			ft_printf("connection accepted on sock: %d\n", cs);
-			signal(SIGCHLD, SIG_IGN);
-			close(cs);
-		}
-		else
-		{
-			handle_cmds(cs);
-			ft_putendl("closing connection");
-			close(cs);
-			break ;
-		}
+		fork_for_connection(cs);
 	}
 	close(sock);
 	return (0);
 }
 
-char	*get_base_path(void)
+int			main(int ac, char **av)
 {
-	static char		*base_path = NULL;
-
-	if (!base_path)
-		base_path = getcwd(base_path, 255);
-	return (base_path);
-}
-
-int		main(int ac, char **av) {
 	int					port;
 
 	if (ac != 2)

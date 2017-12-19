@@ -24,7 +24,7 @@ int		exec_pwd(const char **cmd, int csock)
 			send(csock, ERROR_MSG, ERROR_LENGTH, 0);
 			exit(EXIT_FAILURE);
 		}
-		execv("/bin/pwd", (char* const*)cmd);
+		execv("/bin/pwd", (char*const*)cmd);
 	}
 	return (0);
 }

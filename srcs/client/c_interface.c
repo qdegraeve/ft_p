@@ -1,6 +1,6 @@
 #include "client.h"
 
-static char	*get_server_pwd()
+static char	*get_server_pwd(void)
 {
 	char	cmd[6];
 	char	buf[256];
@@ -65,9 +65,9 @@ void	user_interface(int sock)
 			if (ft_strcmp(line, "quit") == 0)
 			{
 				ft_strdel(&line);
-				break;
+				break ;
 			}
-			else if ((error = exec_cmds(sock, line)) ==  -1)
+			else if ((error = exec_cmds(sock, line)) == -1)
 				ft_printf("%sCommand not found\nNew commands coming soon\n%s",
 					RED, NRM);
 			ft_strdel(&line);

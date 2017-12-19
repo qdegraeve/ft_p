@@ -21,7 +21,6 @@ static int	check_termination(int params, t_data *data, unsigned long size,
 		unlink(filename);
 	close(file_fd);
 	return (ret);
-
 }
 
 static int	receive_file(t_data *data, int file_fd, const char *filename,
@@ -49,7 +48,7 @@ static int	receive_file(t_data *data, int file_fd, const char *filename,
 	return (0);
 }
 
-int		exec_put(const char **cmd, int csock)
+int			exec_put(const char **cmd, int csock)
 {
 	t_data			data;
 	int				file_fd;

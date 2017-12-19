@@ -52,7 +52,6 @@ static int	check_termination(int params, t_data *data, unsigned long size,
 	}
 	close(file_fd);
 	return (error);
-
 }
 
 static int	receive_file(t_data *data, int file_fd, char *filename, int socket)

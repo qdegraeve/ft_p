@@ -24,13 +24,12 @@ static int	proceed_file(char *cmd, t_data *data)
 	{
 		data->data_size = htonl(stat.st_size);
 		data->total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);
-		
 	}
 	ft_tabdel(&args);
 	return (ret);
 }
 
-int		exec_put(char *cmd, int sock)
+int			exec_put(char *cmd, int sock)
 {
 	int				file_fd;
 	t_data			data;
