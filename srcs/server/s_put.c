@@ -36,6 +36,7 @@ static int	receive_file(t_data *data, int file_fd, const char *filename,
 	while (!ret)
 	{
 		rec_data(data, csock);
+		ft_printf("part_nb == %d/%d ***** part_size == [%d]\n", data->part_nb, data->total_parts, data->part_size);
 		if (data->part_nb == prev_part++)
 			write(file_fd, data->data, data->part_size);
 		else
@@ -52,11 +53,14 @@ int			exec_put(const char **cmd, int csock)
 {
 	t_data			data;
 	int				file_fd;
+	char			*filename;
 
 	ft_bzero(&data, DATASIZE);
+	filename = extract_from_path((char*)cmd[1]);
+	ft_printf("file == %s\n", filename);
 	if (!cmd[1])
 		return (send_error(csock, "No file given", 0));
-	else if ((file_fd = open(cmd[1], O_RDWR | O_CREAT | O_EXCL,
+	else if ((file_fd = open(filename, O_RDWR | O_CREAT | O_EXCL,
 		S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
 		return (send_error(csock, "File creation failed", 0));
 	else
@@ -64,5 +68,5 @@ int			exec_put(const char **cmd, int csock)
 		data.data_size = htonl(42);
 		send(csock, &data, DATASIZE, 0);
 	}
-	return (receive_file(&data, file_fd, cmd[1], csock));
+	return (receive_file(&data, file_fd, filename, csock));
 }

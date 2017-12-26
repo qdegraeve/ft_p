@@ -86,6 +86,7 @@ int			exec_get(char *cmd, int socket)
 
 	ft_bzero(&data, DATASIZE);
 	send(socket, cmd, ft_strlen(cmd), 0);
+	send(socket, EOC, 2, 0);
 	if ((file_fd = open_file(socket, &data)) == -1)
 		return (1);
 	ft_strcpy(filename, data.data);

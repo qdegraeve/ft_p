@@ -23,7 +23,8 @@ static int	proceed_file(char *cmd, t_data *data)
 	else
 	{
 		data->data_size = htonl(stat.st_size);
-		data->total_parts = htonl(stat.st_size / (BUFSIZE - 1) + 1);
+		data->total_parts = htonl((stat.st_size / BUFSIZE) +
+			(stat.st_size % BUFSIZE ? 1 : 0));
 	}
 	ft_tabdel(&args);
 	return (ret);
@@ -37,20 +38,21 @@ int			exec_put(char *cmd, int sock)
 	unsigned long	part_nb;
 
 	send(sock, cmd, ft_strlen(cmd), 0);
+	send(sock, EOC, 2, 0);
 	ft_bzero(&data, DATASIZE);
-	if (!rec_data(&data, sock)
-		|| (file_fd = proceed_file(cmd, &data)) == -1)
+	if (!rec_data(&data, sock))
 	{
 		ft_printf("%s%s%s\n", data.return_code ? RED : GRN, data.data, NRM);
 		return (1);
 	}
+	if ((file_fd = proceed_file(cmd, &data)) == -1)
+		return (1);
 	part_nb = 1;
-	while (data.part_nb < data.total_parts)
+	while ((r = read(file_fd, &data.data, BUFSIZE)) > 0)
 	{
 		data.part_nb = htonl(part_nb++);
-		r = read(file_fd, &data.data, BUFSIZE - 1);
-		data.data[r] = '\0';
 		data.part_size = htonl(r);
+		ft_printf("part_nb == %d/%d ***** part_size == [%d]\n", part_nb, data.total_parts, r);
 		send(sock, &data, DATASIZE, 0);
 	}
 	close(file_fd);

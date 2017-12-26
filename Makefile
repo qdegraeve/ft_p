@@ -22,7 +22,9 @@ SRCS_SERVER = \
 	   s_where.c \
 	   s_tools.c \
 	   rec_data.c \
-	   fork_utils.c
+	   fork_utils.c \
+	   get_next_cmd.c \
+	   misc_tools.c
 
 SRCS_CLIENT = \
 	   c_main.c \
@@ -35,7 +37,8 @@ SRCS_CLIENT = \
 	   c_lpwd.c \
 	   c_interface.c \
 	   rec_data.c \
-	   fork_utils.c
+	   fork_utils.c \
+	   misc_tools.c
 
 OBJDIR = objs/
 OBJS_SERVER = $(patsubst %.c, $(OBJDIR)%.o, $(SRCS_SERVER))

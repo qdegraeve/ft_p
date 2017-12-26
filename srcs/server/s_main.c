@@ -62,6 +62,7 @@ static int	handle_connections(int port)
 	struct sockaddr_in	csin;
 
 	cs = 0;
+	ft_bzero(&csin, sizeof(struct sockaddr_in));
 	sock = create_server(port);
 	while (42)
 	{

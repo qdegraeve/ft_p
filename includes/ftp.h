@@ -14,7 +14,7 @@
 
 # define BUFSIZE	1024
 # define DATASIZE	sizeof(t_data)
-
+# define EOC		"\r\n"
 typedef struct			s_data
 {
 	unsigned long		data_size;
@@ -27,5 +27,7 @@ typedef struct			s_data
 
 char					**ft_ls(char **args);
 int						rec_data(t_data *data, int socket);
+int						get_next_cmd(int const fd, char **line);
+char					*extract_from_path(char *path);
 
 #endif

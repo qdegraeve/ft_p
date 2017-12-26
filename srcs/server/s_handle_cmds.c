@@ -54,18 +54,17 @@ int			send_error(int csock, const char *name, int flush)
 
 void		handle_cmds(int socket)
 {
-	int				r;
 	int				i;
-	char			buf[BUFSIZE];
+	char			*line;
 	char			**cmd;
 
 	cmd = NULL;
+	line = NULL;
 	i = 0;
-	while ((r = recv(socket, &buf, BUFSIZE - 1, 0)) > 0)
+	while (get_next_cmd(socket, &line) > 0)
 	{
-		buf[r] = '\0';
-		cmd = ft_strsplit(buf, ' ');
-		ft_printf("command == %s\n", cmd[0]);
+		cmd = ft_strsplit(line, ' ');
+		ft_printf("command == [%s]\n", cmd[0]);
 		i = 0;
 		while (cmd && i < CMDS_NB)
 		{

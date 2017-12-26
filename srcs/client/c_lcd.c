@@ -4,6 +4,7 @@ int		exec_lcd(char *command, int sock)
 {
 	char	*path;
 	char	**args;
+	int		test = 0;
 
 	sock = 0;
 	path = NULL;
@@ -14,8 +15,9 @@ int		exec_lcd(char *command, int sock)
 		ft_tabdel(&args);
 		return (1);
 	}
-	if (chdir((args[1] = ft_cjoin(args[1], "/"))) != 0)
+	if ((test = chdir((args[1] = ft_cjoin(args[1], "/")))) == -1)
 	{
+		ft_printf("ret == %d, args == %s\n", test, args[1]);
 		ft_putendl_fd("cd : Access denied", 2);
 		return (1);
 	}

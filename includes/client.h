@@ -9,6 +9,7 @@
 typedef struct			s_client_cmds
 {
 	char				*id;
+	int					length;
 	int					(*f)(char *cmd, int csock);
 }						t_client_cmds;
 
@@ -16,6 +17,7 @@ typedef struct			s_client_cmds
 **			USER INTERFACE
 */
 void					user_interface(int sock);
+char					*get_server_pwd(char *new, int ask);
 
 /*
 **			COMMANDS HANDLERS

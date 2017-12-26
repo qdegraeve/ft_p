@@ -1,30 +1,29 @@
 #include "client.h"
 
-static char	*get_server_pwd(void)
+char		*get_server_pwd(char *new, int ask)
 {
-	char	cmd[6];
-	char	buf[256];
+	static char		*pwd = NULL;
+	char	cmd[8] = "";
+	char	buf[256] = "";
 	int		sock;
 	int		i;
 
-	sock = get_current_socket(0);
-	ft_strcpy(cmd, "where");
-	send(sock, cmd, ft_strlen(cmd), 0);
-	i = recv(sock, buf, 41999, 0);
-	buf[i] = '\0';
-	return (ft_strdup(buf));
-}
-
-static char	*get_pwd_prompt(char *path)
-{
-	int		i;
-
-	if (!path)
-		path = ft_strdup("Middle of nowhere");
-	i = ft_strlen(path);
-	while (i >= 0 && path[i] != '/')
-		i--;
-	return (path + i + 1);
+	if (new)
+	{
+		ft_strdel(&pwd);
+		pwd = ft_strdup(new);
+	}
+	else if (!pwd || ask)
+	{
+		sock = get_current_socket(0);
+		ft_strcpy(cmd, "where\r\n");
+		send(sock, cmd, ft_strlen(cmd), 0);
+		i = recv(sock, buf, 255, 0);
+		buf[i] = '\0';
+		ft_strdel(&pwd);
+		pwd = ft_strdup(buf);
+	}
+	return (pwd);
 }
 
 static void	prompt(int error)
@@ -34,18 +33,17 @@ static void	prompt(int error)
 
 	path = NULL;
 	path = getcwd(path, 255);
-	server_pwd = get_server_pwd();
+	server_pwd = get_server_pwd(NULL, 0);
 	if (error)
-		ft_printf("%sl-> %s %s(s-> %s)%s: X ", CYN, get_pwd_prompt(path),
+		ft_printf("%sl-> %s %s(s-> %s)%s: X ", CYN, extract_from_path(path),
 			YEL, server_pwd, RED);
 	else
 	{
-		ft_printf("%sl-> %s %s(s-> %s)%s: <3 ", CYN, get_pwd_prompt(path),
+		ft_printf("%sl-> %s %s(s-> %s)%s: <3 ", CYN, extract_from_path(path),
 			YEL, server_pwd, GRN);
 	}
 	ft_printf("%s", NRM);
 	ft_strdel(&path);
-	ft_strdel(&server_pwd);
 }
 
 void	user_interface(int sock)
