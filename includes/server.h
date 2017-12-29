@@ -37,5 +37,7 @@ int						has_operator(const char **cmd);
 **			MISCS
 */
 char					*get_base_path();
+void					handle_sigchld(int signal);
+int						nb_connections(int action);
 
 #endif

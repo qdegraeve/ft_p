@@ -41,7 +41,9 @@ static int	fork_for_connection(int cs)
 	if (pid > 0)
 	{
 		ft_printf("connection accepted on sock: %d\n", cs);
-		signal(SIGCHLD, SIG_IGN);
+		nb_connections(1);
+		send(cs, "OK\0", 2, 0);
+		signal(SIGCHLD, handle_sigchld);
 		close(cs);
 	}
 	else
@@ -68,7 +70,15 @@ static int	handle_connections(int port)
 	{
 		if ((cs = accept(sock, (struct sockaddr *)&csin, &cslen)) == -1)
 			continue ;
-		fork_for_connection(cs);
+		ft_printf("number of active connections: %d\n", nb_connections(0));
+		if (nb_connections(0) < 42)
+			fork_for_connection(cs);
+		else
+		{
+			ft_putendl("Too many conections. Closing connecion");
+			send(cs, "Too many connections. Try again later\0", 37, 0);
+			close(cs);
+		}
 	}
 	close(sock);
 	return (0);

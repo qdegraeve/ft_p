@@ -29,6 +29,7 @@ int			hostname_to_ip(char *hostname, char *ip)
 int			create_client2(char *ip, int sock, int port)
 {
 	struct sockaddr_in	sin;
+	char				buf[256];
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);
@@ -37,6 +38,11 @@ int			create_client2(char *ip, int sock, int port)
 	{
 		ft_printf("Connect error on socket : %d\n", sock);
 		exit(EXIT_FAILURE);
+	}
+	if (recv(sock, &buf, 255, 0) > 3)
+	{
+		ft_putendl(buf);
+		exit(EXIT_FAILURE);		
 	}
 	return (sock);
 }
