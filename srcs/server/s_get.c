@@ -11,8 +11,8 @@ static int	create_file(t_data *data, int csock, const char **cmd)
 		send_error(csock, "No file given", 0);
 		return (-1);
 	}
-	else if ((ret = open(cmd[1], O_RDONLY, 0)) == -1)
-		send_error(csock, "Failed to open file:", 0);
+	if ((ret = open(extract_from_path((char*)cmd[1]), O_RDONLY, 0)) == -1)
+		send_error(csock, "Failed to open file", 0);
 	if (ret != -1 && fstat(ret, &stat) < 0)
 	{
 		send_error(csock, "Failed to stat file -- get aborted", 0);

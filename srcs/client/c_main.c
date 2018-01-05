@@ -2,7 +2,7 @@
 
 static void	usage(char *str)
 {
-	ft_printf("Usage: %s <port>\n", str);
+	ft_printf("Usage: %s <address> <port>\n", str);
 	exit(EXIT_FAILURE);
 }
 

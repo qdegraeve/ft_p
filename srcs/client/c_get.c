@@ -22,8 +22,8 @@ static int	open_file(int socket, t_data *data)
 		ft_printf("%s%s%s\n", data->return_code ? RED : GRN, data->data, NRM);
 		return (-1);
 	}
-	if ((file_fd = open(data->data, O_WRONLY | O_CREAT | O_EXCL,
-		S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
+	if (ft_strchr(data->data, '/') || (file_fd = open(data->data, O_WRONLY |
+		O_CREAT | O_EXCL, S_IRWXU | S_IRWXG | S_IRWXO)) == -1)
 	{
 		ft_putendl_fd("Failed to create file", 2);
 		send_error(socket, "Failed to create file");
