@@ -36,7 +36,6 @@ static int	receive_file(t_data *data, int file_fd, const char *filename,
 	while (!ret)
 	{
 		rec_data(data, csock);
-		ft_printf("part_nb == %d/%d ***** part_size == [%d]\n", data->part_nb, data->total_parts, data->part_size);
 		if (data->part_nb == prev_part++)
 			write(file_fd, data->data, data->part_size);
 		else

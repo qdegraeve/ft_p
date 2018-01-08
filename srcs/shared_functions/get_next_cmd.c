@@ -27,7 +27,7 @@ static int	check_crln(char *s)
 	return (-1);
 }
 
-int		get_next_cmd(int const fd, char **line)
+int			get_next_cmd(int const fd, char **line)
 {
 	int			ret;
 	int			k;

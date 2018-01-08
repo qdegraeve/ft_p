@@ -28,7 +28,7 @@ static int	create_file(t_data *data, int csock, const char **cmd)
 	return (ret);
 }
 
-int		exec_get(const char **cmd, int csock)
+int			exec_get(const char **cmd, int csock)
 {
 	int				file_fd;
 	t_data			data;

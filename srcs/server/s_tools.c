@@ -11,16 +11,16 @@ char	*get_base_path(void)
 
 void	handle_sigchld(int signal)
 {
-	pid_t p;
-    int status;
+	pid_t	p;
+	int		status;
 
-    while (signal && (p = wait4(-1, &status, WNOHANG, NULL)) != -1)
+	while (signal && (p = wait4(-1, &status, WNOHANG, NULL)) != -1)
 		nb_connections(-1);
 }
 
 int		nb_connections(int action)
 {
-	static int			connections = 0;
+	static int		connections = 0;
 
 	connections += action;
 	return (connections);

@@ -15,6 +15,7 @@
 # define BUFSIZE	1024
 # define DATASIZE	sizeof(t_data)
 # define EOC		"\r\n"
+
 typedef struct			s_data
 {
 	unsigned long		data_size;

@@ -3,11 +3,13 @@
 char		*get_server_pwd(char *new, int ask)
 {
 	static char		*pwd = NULL;
-	char	cmd[8] = "";
-	char	buf[256] = "";
-	int		sock;
-	int		i;
+	char			cmd[8];
+	char			buf[256];
+	int				sock;
+	int				i;
 
+	ft_bzero(cmd, 8);
+	ft_bzero(buf, 256);
 	if (new)
 	{
 		ft_strdel(&pwd);
@@ -46,7 +48,7 @@ static void	prompt(int error)
 	ft_strdel(&path);
 }
 
-void	user_interface(int sock)
+void		user_interface(int sock)
 {
 	char	*line;
 	int		error;

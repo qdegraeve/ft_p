@@ -36,5 +36,6 @@ int						exec_lpwd(char *command, int sock);
 */
 int						get_current_socket(int current);
 void					signal_catcher(void);
+int						send_error(int csock, char *name);
 
 #endif

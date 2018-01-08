@@ -1,18 +1,5 @@
 #include "client.h"
 
-static int	send_error(int csock, char *name)
-{
-	t_data			data;
-
-	ft_bzero(&data, DATASIZE);
-	ft_strcpy(data.data, "Client: Transmission error : ");
-	ft_strcat(data.data, name);
-	data.data_size = htonl(0);
-	data.return_code = htonl(1);
-	send(csock, &data, DATASIZE, 0);
-	return (1);
-}
-
 static int	open_file(int socket, t_data *data)
 {
 	int				file_fd;

@@ -1,5 +1,11 @@
 #include "client.h"
 
+static int	norme(char *str, char *arg)
+{
+	ft_printf(str, arg);
+	return (-1);
+}
+
 static int	proceed_file(char *cmd, t_data *data)
 {
 	char			**args;
@@ -9,17 +15,11 @@ static int	proceed_file(char *cmd, t_data *data)
 	ret = 0;
 	args = ft_strsplit(cmd, ' ');
 	if ((!args || !args[1]))
-	{
-		ft_printf("put: No file given\n");
-		ret = -1;
-	}
+		norme("put: No file given\n", NULL);
 	else if ((ret = open(args[1], O_RDONLY)) == -1)
 		ft_printf("put: failed to open file: %s\n", args[1]);
 	else if (fstat(ret, &stat) < 0)
-	{
-		ft_printf("put: failed to stat file: %s\nTransfer aborted", args[1]);
-		ret = -1;
-	}
+		norme("put: failed to stat file: %s\nTransfer aborted", args[1]);
 	else
 	{
 		data->data_size = htonl(stat.st_size);
@@ -46,13 +46,12 @@ int			exec_put(char *cmd, int sock)
 		return (1);
 	}
 	if ((file_fd = proceed_file(cmd, &data)) == -1)
-		return (1);
+		return (send_error(sock, "Failed to open file"));
 	part_nb = 1;
 	while ((r = read(file_fd, &data.data, BUFSIZE)) > 0)
 	{
 		data.part_nb = htonl(part_nb++);
 		data.part_size = htonl(r);
-		ft_printf("part_nb == %d/%d ***** part_size == [%d]\n", part_nb, data.total_parts, r);
 		send(sock, &data, DATASIZE, 0);
 	}
 	close(file_fd);

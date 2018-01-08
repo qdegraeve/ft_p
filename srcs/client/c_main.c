@@ -42,7 +42,7 @@ int			create_client2(char *ip, int sock, int port)
 	if (recv(sock, &buf, 255, 0) > 3)
 	{
 		ft_putendl(buf);
-		exit(EXIT_FAILURE);		
+		exit(EXIT_FAILURE);
 	}
 	return (sock);
 }
