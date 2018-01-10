@@ -23,6 +23,7 @@ int		exec_fork(char *cmd, int sock)
 	int			i;
 	char		buf[42000];
 
+	ft_bzero(&buf, 42000);
 	send(sock, cmd, ft_strlen(cmd), 0);
 	send(sock, EOC, 2, 0);
 	i = recv(sock, buf, 41999, 0);
@@ -39,6 +40,7 @@ int		exec_cmds(int sock, char *cmd)
 
 	i = -1;
 	ret = 0;
+	ft_bzero(&data, DATASIZE);
 	while (++i < CMDS_NB)
 	{
 		if (ft_strncmp(g_commands[i].id, cmd, g_commands[i].length) == 0)
@@ -48,9 +50,9 @@ int		exec_cmds(int sock, char *cmd)
 				rec_data(&data, sock);
 				ft_printf("%s%s%s\n", data.return_code ? RED : GRN,
 					data.data, NRM);
-				return (data.return_code);
 				if (i == 0 && data.return_code == 0)
 					get_server_pwd(NULL, 1);
+				return (data.return_code);
 			}
 			return (ret);
 		}

@@ -18,8 +18,8 @@ static int	proceed_file(char *cmd, t_data *data)
 		norme("put: No file given\n", NULL);
 	else if ((ret = open(args[1], O_RDONLY)) == -1)
 		ft_printf("put: failed to open file: %s\n", args[1]);
-	else if (fstat(ret, &stat) < 0)
-		norme("put: failed to stat file: %s\nTransfer aborted", args[1]);
+	else if (fstat(ret, &stat) < 0 || !S_ISREG(stat.st_mode))
+		ret = norme("put: file corrupted or not regular : abort\n", args[1]);
 	else
 	{
 		data->data_size = htonl(stat.st_size);

@@ -13,9 +13,9 @@ static int	create_file(t_data *data, int csock, const char **cmd)
 	}
 	if ((ret = open(extract_from_path((char*)cmd[1]), O_RDONLY, 0)) == -1)
 		send_error(csock, "Failed to open file", 0);
-	if (ret != -1 && fstat(ret, &stat) < 0)
+	if (ret != -1 && (fstat(ret, &stat) < 0 || !S_ISREG(stat.st_mode)))
 	{
-		send_error(csock, "Failed to stat file -- get aborted", 0);
+		send_error(csock, "File is corrupted or not regular -- get aborted", 0);
 		close(ret);
 		return (-1);
 	}
@@ -33,8 +33,9 @@ int			exec_get(const char **cmd, int csock)
 	int				file_fd;
 	t_data			data;
 	int				r;
-	int				part_nb;
+	unsigned long	part_nb;
 
+	ft_bzero(&data, DATASIZE);
 	if ((file_fd = create_file(&data, csock, cmd)) == -1)
 		return (1);
 	ft_strcpy(data.data, cmd[1]);
@@ -42,7 +43,7 @@ int			exec_get(const char **cmd, int csock)
 	send(csock, &data, DATASIZE, 0);
 	if (!rec_data(&data, csock))
 		return (send_error(csock, "Client error - get aborted", 0));
-	while (data.part_nb < data.total_parts)
+	while (part_nb <= ntohl(data.total_parts))
 	{
 		data.part_nb = htonl(part_nb++);
 		r = read(file_fd, &data.data, BUFSIZE - 1);

@@ -20,7 +20,7 @@ void	handle_sigchld(int signal)
 
 int		nb_connections(int action)
 {
-	static int		connections = 0;
+	static unsigned int	connections = 0;
 
 	connections += action;
 	return (connections);

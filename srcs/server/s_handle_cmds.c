@@ -13,6 +13,7 @@ static void	flush_socket(int socket)
 {
 	t_data			data;
 
+	ft_bzero(&data, DATASIZE);
 	while (1)
 	{
 		recv(socket, &data, DATASIZE, 0);
@@ -30,6 +31,7 @@ int			send_success(int csock, const char *name)
 {
 	t_data			data;
 
+	ft_bzero(&data, DATASIZE);
 	ft_strcpy(data.data, "Server: ");
 	ft_strcat(data.data, name);
 	data.data_size = htonl(0);
@@ -42,6 +44,7 @@ int			send_error(int csock, const char *name, int flush)
 {
 	t_data			data;
 
+	ft_bzero(&data, DATASIZE);
 	if (flush)
 		flush_socket(csock);
 	ft_strcpy(data.data, "Server: ");
